@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bible Typing &middot; Sermon on the Mount</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ================= TOP BAR ================= -->
+  <header class="topbar" id="topbar" hidden>
+    <div class="topbar-inner">
+      <button class="brand" id="brandBtn" type="button" title="Back to chapters">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="brand-icon">
+          <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6.5a1.5 1.5 0 0 0 0 3H19a1 1 0 0 1 0 2H6.5A3.5 3.5 0 0 1 3 20.5v-16Z"/>
+          <path d="M12 6v7M9 8.5h6" class="brand-cross"/>
+        </svg>
+        <span>Bible Typing</span>
+      </button>
+
+      <div class="topbar-right">
+        <button class="icon-btn" id="sfxBtn" type="button" aria-pressed="true">
+          <span class="icon-glyph" id="sfxGlyph">&#128266;</span><span class="icon-label">Sounds</span>
+        </button>
+        <button class="icon-btn" id="bgmBtn" type="button" aria-pressed="false">
+          <span class="icon-glyph" id="bgmGlyph">&#127925;</span><span class="icon-label">Music</span>
+        </button>
+        <button class="chip" id="whoBtn" type="button" title="Switch camper">
+          <span class="chip-avatar" id="chipAvatar">A</span>
+          <span id="chipName">Camper</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- ================= WELCOME ================= -->
+    <section class="screen" id="screen-welcome">
+      <div class="hero">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="hero-icon">
+          <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6.5a1.5 1.5 0 0 0 0 3H19a1 1 0 0 1 0 2H6.5A3.5 3.5 0 0 1 3 20.5v-16Z"/>
+          <path d="M12 6v7M9 8.5h6" class="brand-cross"/>
+        </svg>
+        <h1>Bible Typing</h1>
+        <p class="hero-sub">The Sermon on the Mount &middot; Matthew 5, 6 &amp; 7</p>
+      </div>
+
+      <div class="card welcome-card">
+        <div id="pickWrap">
+          <h2 class="card-title">Who is typing today?</h2>
+          <div class="camper-grid" id="camperGrid"></div>
+          <button class="btn btn-primary btn-block" id="newCamperBtn" type="button">
+            <span aria-hidden="true">&#10133;</span> I'm new here
+          </button>
+        </div>
+
+        <form id="newCamperForm" hidden autocomplete="off">
+          <h2 class="card-title">Let's get you started</h2>
+
+          <label class="field">
+            <span class="field-label">My name</span>
+            <input type="text" id="fName" maxlength="16" placeholder="First name" required>
+          </label>
+
+          <label class="field">
+            <span class="field-label">My age</span>
+            <input type="number" id="fAge" min="5" max="15" placeholder="8" required>
+          </label>
+
+          <fieldset class="field">
+            <legend class="field-label">I am a</legend>
+            <div class="radio-row" id="fGender">
+              <label class="radio-pill"><input type="radio" name="gender" value="girl"><span>Girl</span></label>
+              <label class="radio-pill"><input type="radio" name="gender" value="boy"><span>Boy</span></label>
+              <label class="radio-pill"><input type="radio" name="gender" value="other"><span>Rather not say</span></label>
+            </div>
+          </fieldset>
+
+          <p class="form-error" id="formError" hidden></p>
+
+          <div class="btn-row">
+            <button class="btn btn-ghost" id="cancelNewBtn" type="button">Back</button>
+            <button class="btn btn-primary" type="submit">Start typing</button>
+          </div>
+        </form>
+
+        <p class="fineprint">Your progress is saved on this computer only &mdash; no password needed.</p>
+      </div>
+    </section>
+
+    <!-- ================= HOME / CHAPTER PICKER ================= -->
+    <section class="screen" id="screen-home" hidden>
+      <div class="greet">
+        <h1 id="greetName">Hello!</h1>
+        <p class="greet-sub" id="greetSub">Pick a chapter to type.</p>
+      </div>
+
+      <div class="chapter-grid" id="chapterGrid"></div>
+
+      <div class="two-col">
+        <div class="card">
+          <h2 class="card-title">My badges</h2>
+          <div class="badge-shelf" id="badgeShelf"></div>
+          <div class="legend">
+            <span class="legend-item"><i class="dot dot-gold"></i>Gold 98%+</span>
+            <span class="legend-item"><i class="dot dot-silver"></i>Silver 95%+</span>
+            <span class="legend-item"><i class="dot dot-bronze"></i>Bronze 90%+</span>
+            <span class="legend-item"><i class="dot dot-pearl"></i>Pearl under 90%</span>
+          </div>
+        </div>
+
+        <div class="card" id="boardCard">
+          <h2 class="card-title">Camp board <small>by accuracy</small></h2>
+          <ol class="board" id="board"></ol>
+        </div>
+      </div>
+
+      <div class="home-foot">
+        <button class="btn btn-ghost btn-sm" id="switchBtn" type="button">Switch camper</button>
+        <button class="btn btn-ghost btn-sm danger" id="resetBtn" type="button">Reset my progress</button>
+      </div>
+    </section>
+
+    <!-- ================= TYPING ================= -->
+    <section class="screen screen-type" id="screen-type" hidden>
+      <div class="type-head">
+        <button class="btn btn-ghost btn-sm" id="backBtn" type="button">&larr; Chapters</button>
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+          <span class="progress-text" id="progText">0 / 0</span>
+        </div>
+      </div>
+
+      <div class="card type-card">
+        <h2 class="verse-ref"><span id="chapTitle">Matthew 5</span> <em id="verseRef">verse 1</em></h2>
+
+        <div class="target" id="target" aria-live="off"></div>
+
+        <div class="echo-wrap">
+          <div class="echo-label">You are typing</div>
+          <div class="echo" id="echo"></div>
+        </div>
+
+        <input type="text" id="capture" class="capture"
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+               aria-label="Type the verse here">
+
+        <p class="hint" id="hint">Click here and start typing.</p>
+
+        <div class="statbar">
+          <div class="stat"><span class="stat-label">Speed</span><span class="stat-pill pill-blue" id="sWpm">0</span><span class="stat-unit">wpm</span></div>
+          <span class="stat-sep">|</span>
+          <div class="stat"><span class="stat-label">Accuracy</span><span class="stat-pill pill-green" id="sAcc">100</span><span class="stat-unit">%</span></div>
+          <span class="stat-sep">|</span>
+          <div class="stat"><span class="stat-label">Oops</span><span class="stat-pill pill-red" id="sErr">0</span></div>
+        </div>
+      </div>
+
+      <div class="type-foot">
+        <button class="btn btn-ghost btn-sm" id="redoBtn" type="button">Clear this line</button>
+        <button class="btn btn-primary" id="nextBtn" type="button" disabled>Next &rarr;</button>
+      </div>
+    </section>
+
+    <!-- ================= CHAPTER COMPLETE ================= -->
+    <section class="screen" id="screen-done" hidden>
+      <div class="done-wrap">
+        <div class="confetti" id="confetti" aria-hidden="true"></div>
+
+        <div class="card done-card">
+          <p class="done-kicker">Chapter complete!</p>
+          <h1 class="done-title" id="doneTitle">Matthew 5</h1>
+
+          <div class="medal" id="medal">
+            <div class="medal-disc" id="medalDisc"><span id="medalGlyph">&#9733;</span></div>
+            <div class="medal-name" id="medalName">Gold</div>
+          </div>
+
+          <p class="done-msg" id="doneMsg"></p>
+
+          <div class="result-grid">
+            <div class="result"><span class="result-num" id="rAcc">0%</span><span class="result-label">Accuracy</span></div>
+            <div class="result"><span class="result-num" id="rWpm">0</span><span class="result-label">Words / min</span></div>
+            <div class="result"><span class="result-num" id="rTime">0:00</span><span class="result-label">Time typing</span></div>
+            <div class="result"><span class="result-num" id="rErr">0</span><span class="result-label">Oops</span></div>
+            <div class="result"><span class="result-num" id="rVerses">0</span><span class="result-label">Verses</span></div>
+            <div class="result"><span class="result-num" id="rChars">0</span><span class="result-label">Letters typed</span></div>
+          </div>
+
+          <div class="btn-row center">
+            <button class="btn btn-ghost" id="againBtn" type="button">Type it again</button>
+            <button class="btn btn-primary" id="doneNextBtn" type="button">Next chapter</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="sitefoot">
+    Scripture: King James Version (public domain).
+  </footer>
+</div>
+
+<script src="js/bible-kjv.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
