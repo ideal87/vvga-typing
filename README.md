@@ -30,6 +30,50 @@ js/app.js
 
 ---
 
+## Publishing to GitHub Pages
+
+Live at **https://ideal87.github.io/vvga-typing/**. It is a plain static
+folder, so there is nothing to build — push to `main` and Pages serves
+it a minute or two later.
+
+### One step every time you deploy
+
+**Bump the `?v=` number in `index.html`** — it appears five times, once
+per `<link>`/`<script>`.
+
+```html
+<link rel="stylesheet" href="css/style.css?v=4">
+...
+<script src="js/app.js?v=4"></script>
+```
+
+GitHub Pages tells every browser to keep every file for ten minutes
+(`Cache-Control: max-age=600`) and does not let you change that. Without
+the bump, a returning camper can end up running the **new `index.html`
+against the old scripts**, which is worse than an obvious break — the
+page half works. The tune menu comes up empty and the pictures never
+appear, with nothing in the console to explain it. Changing the number
+gives the scripts new addresses, so the HTML and its scripts always
+arrive as a matched pair.
+
+The query string is ignored when the folder is opened straight off the
+USB stick, so it costs the offline copy nothing. (Verified in both
+Chrome and Firefox on `file://`.)
+
+### Checking a deploy right away
+
+Your own browser will hold the old files for up to ten minutes.
+**Ctrl+F5** (Cmd+Shift+R on a Mac), or a private window, shows you what
+has actually shipped.
+
+### Progress does not travel between the two copies
+
+Browsers file this kind of storage under the address it came from, so
+the Pages copy and a USB copy keep entirely separate progress. Pick one
+for the camp and stay on it.
+
+---
+
 ## How it works for a camper
 
 1. **Welcome screen** — they tap their name, or press *I'm new here* and
