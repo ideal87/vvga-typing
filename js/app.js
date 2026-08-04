@@ -439,7 +439,7 @@
 
     $('chipName').textContent = p.name;
     paintChipAvatar(p);
-    $('greetName').textContent = 'Hello, ' + p.name + '!';
+    $('greetName').textContent = 'Shalom, ' + p.name + '!';
 
     var totalDone = 0;
     for (var k in p.chapters) {
