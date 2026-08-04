@@ -28,6 +28,7 @@
         <button class="icon-btn" id="bgmBtn" type="button" aria-pressed="false">
           <span class="icon-glyph" id="bgmGlyph">&#127925;</span><span class="icon-label">Music</span>
         </button>
+        <select class="track-select" id="bgmTrack" aria-label="Choose the music"></select>
         <button class="chip" id="whoBtn" type="button" title="Switch camper">
           <span class="chip-avatar" id="chipAvatar">A</span>
           <span id="chipName">Camper</span>
@@ -77,6 +78,11 @@
               <label class="radio-pill"><input type="radio" name="gender" value="girl"><span>Girl</span></label>
               <label class="radio-pill"><input type="radio" name="gender" value="boy"><span>Boy</span></label>
             </div>
+          </fieldset>
+
+          <fieldset class="field" id="avatarField" hidden>
+            <legend class="field-label">My picture</legend>
+            <div class="avatar-row" id="fAvatar"></div>
           </fieldset>
 
           <p class="form-error" id="formError" hidden></p>
@@ -201,11 +207,13 @@
   </main>
 
   <footer class="sitefoot">
-    Scripture: King James Version (public domain).
+    Scripture: Berean Standard Bible (BSB) &mdash; dedicated to the public domain by the
+    Berean Bible Translation Committee, BereanBible.com.
   </footer>
 </div>
 
-<script src="js/bible-kjv.js"></script>
+<script src="js/bible-bsb.js"></script>
+<script src="js/avatars.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/app.js"></script>

@@ -16,7 +16,12 @@ window.Store = (function () {
   var mem = null;
 
   function blank() {
-    return { v: 1, activeId: null, settings: { sfx: true, bgm: false }, profiles: [] };
+    return {
+      v: 1,
+      activeId: null,
+      settings: { sfx: true, bgm: false, bgmTrack: 'stream' },
+      profiles: []
+    };
   }
 
   function read() {
@@ -59,7 +64,8 @@ window.Store = (function () {
       completed: false,
       bestAcc: null,   // best accuracy ever reached on this chapter
       badge: null,     // best badge ever earned
-      runs: 0
+      runs: 0,
+      txt: null        // which scripture text  seg  was counted against
     };
   }
 
@@ -82,13 +88,14 @@ window.Store = (function () {
     write(d);
   }
 
-  function create(name, age, gender) {
+  function create(name, age, gender, avatar) {
     var d = read();
     var p = {
       id: newId(),
       name: name,
       age: age,
       gender: gender,
+      avatar: avatar || null,
       created: Date.now(),
       chapters: {}
     };
@@ -150,12 +157,22 @@ window.Store = (function () {
 
   function settings() {
     var s = read().settings || {};
-    return { sfx: s.sfx !== false, bgm: s.bgm === true };
+    return {
+      sfx: s.sfx !== false,
+      bgm: s.bgm === true,
+      // Saved before the extra tunes existed? Fall back to the
+      // original loop rather than to nothing.
+      bgmTrack: typeof s.bgmTrack === 'string' ? s.bgmTrack : 'stream'
+    };
   }
 
   function saveSettings(s) {
     var d = read();
-    d.settings = { sfx: !!s.sfx, bgm: !!s.bgm };
+    d.settings = {
+      sfx: !!s.sfx,
+      bgm: !!s.bgm,
+      bgmTrack: typeof s.bgmTrack === 'string' ? s.bgmTrack : 'stream'
+    };
     write(d);
   }
 

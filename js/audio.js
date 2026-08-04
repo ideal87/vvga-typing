@@ -17,15 +17,44 @@ window.Sound = (function () {
   var step = 0;
   var nextNoteAt = 0;
 
-  var STEP_SEC = 0.42;          // one eighth note
   var LOOKAHEAD_MS = 25;
   var SCHEDULE_AHEAD = 0.25;
 
-  // A gentle 16-step figure in A minor pentatonic, with a bass
-  // note on every fourth step. Quiet enough to type over.
-  var MELODY = [57, 60, 64, 67, 64, 60, 62, 65,
-                57, 60, 64, 69, 67, 64, 60, 59];
-  var BASS   = [45, 41, 43, 40];
+  /* Three loops a camper can choose between. Each is 16 steps of
+     melody over four bass notes, one per bar. They are all written
+     to sit under a typing exercise: no drums, no sudden jumps, and
+     quiet enough that the mistake "thunk" still cuts through. */
+  var TRACKS = [
+    {
+      // The original: A minor pentatonic, slow and calm.
+      id: 'stream', name: 'Quiet Stream',
+      step: 0.42, hold: 0.85, lead: 'sine', bassWave: 'triangle',
+      leadVol: 0.05, bassVol: 0.05,
+      melody: [57, 60, 64, 67, 64, 60, 62, 65,
+               57, 60, 64, 69, 67, 64, 60, 59],
+      bass: [45, 41, 43, 40]
+    },
+    {
+      // C major, climbing - bright without being busy.
+      id: 'sunrise', name: 'Bright Sunrise',
+      step: 0.36, hold: 0.70, lead: 'triangle', bassWave: 'sine',
+      leadVol: 0.05, bassVol: 0.055,
+      melody: [72, 76, 79, 76, 77, 74, 72, 69,
+               71, 74, 79, 74, 72, 76, 72, 67],
+      bass: [48, 53, 55, 48]
+    },
+    {
+      // G major, quicker and skipping along. The cheerful one.
+      id: 'praise', name: 'Happy Praise',
+      step: 0.30, hold: 0.52, lead: 'triangle', bassWave: 'triangle',
+      leadVol: 0.048, bassVol: 0.05,
+      melody: [74, 79, 78, 79, 76, 74, 72, 74,
+               78, 76, 74, 78, 79, 74, 71, 67],
+      bass: [43, 48, 50, 43]
+    }
+  ];
+
+  var trackIdx = 0;
 
   function midi(n) { return 440 * Math.pow(2, (n - 69) / 12); }
 
@@ -133,13 +162,15 @@ window.Sound = (function () {
   }
 
   function scheduler() {
+    var t = TRACKS[trackIdx];
     while (nextNoteAt < ctx.currentTime + SCHEDULE_AHEAD) {
-      var i = step % MELODY.length;
-      playBgmNote(MELODY[i], nextNoteAt, 0.85, 0.05, 'sine');
+      var i = step % t.melody.length;
+      playBgmNote(t.melody[i], nextNoteAt, t.hold, t.leadVol, t.lead);
       if (i % 4 === 0) {
-        playBgmNote(BASS[(step / 4 | 0) % BASS.length], nextNoteAt, 1.7, 0.05, 'triangle');
+        playBgmNote(t.bass[(step / 4 | 0) % t.bass.length],
+                    nextNoteAt, t.step * 4, t.bassVol, t.bassWave);
       }
-      nextNoteAt += STEP_SEC;
+      nextNoteAt += t.step;
       step++;
     }
   }
@@ -173,6 +204,26 @@ window.Sound = (function () {
     if (bgmOn) { startBgm(); } else { stopBgm(); }
   }
 
+  /** Switch loops. An unknown id (an old save, a hand-edited
+      settings blob) quietly falls back to the first track. */
+  function setTrack(id) {
+    var next = 0;
+    for (var i = 0; i < TRACKS.length; i++) {
+      if (TRACKS[i].id === id) { next = i; break; }
+    }
+    if (next === trackIdx) return;
+    trackIdx = next;
+    if (bgmOn) { stopBgm(); startBgm(); }
+  }
+
+  function trackList() {
+    var out = [];
+    for (var i = 0; i < TRACKS.length; i++) {
+      out.push({ id: TRACKS[i].id, name: TRACKS[i].name });
+    }
+    return out;
+  }
+
   return {
     unlock: unlock,
     error: error,
@@ -181,6 +232,9 @@ window.Sound = (function () {
     blip: blip,
     setSfx: setSfx,
     setBgm: setBgm,
+    setTrack: setTrack,
+    tracks: trackList,
+    trackId: function () { return TRACKS[trackIdx].id; },
     isSfxOn: function () { return sfxOn; },
     isBgmOn: function () { return bgmOn; }
   };

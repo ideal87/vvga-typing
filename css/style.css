@@ -153,6 +153,22 @@ main {
   font: 700 13px var(--sans);
 }
 
+.track-select {
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.24);
+  color: #fff;
+  border-radius: 999px;
+  padding: 7px 10px;
+  font: 600 13px var(--sans);
+  cursor: pointer;
+  max-width: 150px;
+}
+.track-select:hover { background: rgba(255,255,255,.26); }
+.track-select:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+/* The dropdown itself is drawn by the operating system, so it needs
+   ink-on-paper colours of its own or it inherits white on white. */
+.track-select option { color: var(--ink); background: #fff; }
+
 /* ---------------- generic bits ---------------- */
 
 .card {
@@ -289,6 +305,60 @@ main {
   color: var(--brand-dk);
 }
 .radio-pill input:focus-visible + span { box-shadow: 0 0 0 3px var(--brand-lt); }
+
+/* ---------------- Bible-person pictures ---------------- */
+
+.avatar-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.avatar-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 3px 7px;
+  background: #fbfbff;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: border-color .12s, background .12s, transform .12s;
+}
+.avatar-pick:hover { border-color: var(--brand); background: var(--brand-lt); transform: translateY(-1px); }
+.avatar-pick.on { border-color: var(--brand); background: var(--brand-lt); }
+.avatar-pick:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--brand-lt); }
+
+.avatar-art {
+  width: 46px; height: 46px;
+  border-radius: 22%;
+  background: #eef0fb;
+  overflow: hidden;
+}
+.avatar-pick.on .avatar-art { background: #fff; }
+.avatar-name { font: 600 11.5px var(--sans); color: var(--ink-soft); }
+.avatar-pick.on .avatar-name { color: var(--brand-dk); }
+
+/* Anywhere a camper's picture stands in for their initial, the
+   circle becomes a little rounded frame so the harp, the lion and
+   the tambourine are not cropped off at the edge. */
+.has-art {
+  background: #eef0fb;
+  border-radius: 22%;
+  overflow: hidden;
+  padding: 0;
+}
+.av-svg { display: block; width: 100%; height: 100%; }
+
+.board-avatar {
+  width: 26px; height: 26px; flex: none;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  display: grid; place-items: center;
+  font: 700 12px var(--sans);
+}
 
 .form-error { color: var(--bad); font: 600 14px var(--sans); margin: 0 0 8px; }
 
@@ -668,6 +738,14 @@ main {
   .btn-row.center .btn { flex: 1; }
 }
 
+/* Sounds + Music + the tune menu + the camper chip need the room, so
+   below this width the wordmark drops to just its book icon. */
+@media (max-width: 560px) {
+  .brand span { display: none; }
+  .brand { padding: 6px 4px; }
+  .topbar-inner { gap: 8px; }
+}
+
 @media (max-width: 420px) {
   .target { font-size: 18px; }
   .statbar { gap: 8px; }
@@ -675,6 +753,11 @@ main {
   .brand { font-size: 17px; gap: 6px; padding: 6px 2px; }
   .brand-icon { width: 22px; height: 22px; }
   .chip { padding: 5px 10px 5px 5px; font-size: 13px; }
+  .track-select { max-width: 104px; padding: 7px 6px; font-size: 12px; }
+  .avatar-row { gap: 5px; }
+  .avatar-pick { padding: 6px 2px 5px; }
+  .avatar-art { width: 38px; height: 38px; }
+  .avatar-name { font-size: 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -17,9 +17,14 @@
 
   var CHAPTER_INFO = {
     5: { theme: 'The Beatitudes', hint: 'Blessed are the poor in spirit…' },
-    6: { theme: "The Lord's Prayer", hint: 'Our Father which art in heaven…' },
-    7: { theme: 'Ask, Seek, Knock',  hint: 'Ask, and it shall be given you…' }
+    6: { theme: "The Lord's Prayer", hint: 'Our Father in heaven, hallowed be Your name…' },
+    7: { theme: 'Ask, Seek, Knock',  hint: 'Ask, and it will be given to you…' }
   };
+
+  // Stamped onto every saved chapter so we can tell a place kept
+  // against this text from a place kept against an older one.
+  // Bump it whenever the wording in the data file changes.
+  var TEXT_VER = 'bsb1';
 
   function breakPoint(t) {
     var mid = t.length / 2;
@@ -113,6 +118,23 @@
     return (name || '?').trim().charAt(0).toUpperCase() || '?';
   }
 
+  /** A camper's picture: their Bible person if they picked one,
+      otherwise the first letter of their name. Campers created
+      before the pictures existed keep their letter and lose
+      nothing. */
+  function avatarHtml(p, cls) {
+    var art = window.Avatars ? Avatars.svgFor(p.avatar) : null;
+    return '<span class="' + cls + (art ? ' has-art' : '') + '">' +
+           (art || esc(initial(p.name))) + '</span>';
+  }
+
+  function paintChipAvatar(p) {
+    var art = window.Avatars ? Avatars.svgFor(p.avatar) : null;
+    var el = $('chipAvatar');
+    el.className = 'chip-avatar' + (art ? ' has-art' : '');
+    if (art) { el.innerHTML = art; } else { el.textContent = initial(p.name); }
+  }
+
   function pct(n) { return Math.round(n); }
 
   function mmss(ms) {
@@ -154,14 +176,33 @@
 
   var settings = Store.settings();
 
+  // Fill the tune menu from whatever loops audio.js offers, so
+  // adding a fourth one there needs no change here.
+  function paintTracks() {
+    var sel = $('bgmTrack');
+    var list = Sound.tracks();
+    var known = false;
+    sel.innerHTML = '';
+    for (var i = 0; i < list.length; i++) {
+      var o = document.createElement('option');
+      o.value = list[i].id;
+      o.textContent = list[i].name;
+      sel.appendChild(o);
+      if (list[i].id === settings.bgmTrack) known = true;
+    }
+    if (!known) { settings.bgmTrack = list[0].id; }
+  }
+
   function paintSettings() {
     $('sfxBtn').setAttribute('aria-pressed', settings.sfx ? 'true' : 'false');
     $('bgmBtn').setAttribute('aria-pressed', settings.bgm ? 'true' : 'false');
     $('sfxGlyph').innerHTML = settings.sfx ? '&#128266;' : '&#128263;';
+    $('bgmTrack').value = settings.bgmTrack;
   }
 
   function applySettings() {
     Sound.setSfx(settings.sfx);
+    Sound.setTrack(settings.bgmTrack);
     Sound.setBgm(settings.bgm);
     Store.saveSettings(settings);
     paintSettings();
@@ -175,6 +216,16 @@
 
   $('bgmBtn').addEventListener('click', function () {
     settings.bgm = !settings.bgm;
+    applySettings();
+  });
+
+  // Choosing a tune is also how you turn the music on - a child who
+  // picks "Happy Praise" expects to hear it, not to hunt for a
+  // second switch.
+  $('bgmTrack').addEventListener('change', function () {
+    Sound.unlock();
+    settings.bgmTrack = this.value;
+    settings.bgm = true;
     applySettings();
   });
 
@@ -198,7 +249,7 @@
         b.type = 'button';
         b.className = 'camper';
         b.innerHTML =
-          '<span class="camper-avatar">' + esc(initial(p.name)) + '</span>' +
+          avatarHtml(p, 'camper-avatar') +
           '<span>' + esc(p.name) +
           '<span class="camper-meta">' + (done ? done + ' of 3 done' : 'just starting') + '</span>' +
           '</span>';
@@ -216,14 +267,89 @@
     var firstTime = list.length === 0;
     $('pickWrap').hidden = firstTime;
     $('newCamperForm').hidden = !firstTime;
+    // Some browsers put the old answers back after a refresh, so
+    // match the pictures to whatever the form is actually showing.
+    syncAvatars();
     show('screen-welcome');
   }
+
+  /* ---- picking a Bible person ---- */
+
+  var chosenAvatar = null;
+
+  function pickAvatar(id) {
+    chosenAvatar = id;
+    var btns = $('fAvatar').getElementsByClassName('avatar-pick');
+    for (var i = 0; i < btns.length; i++) {
+      var on = btns[i].getAttribute('data-av') === id;
+      btns[i].className = 'avatar-pick' + (on ? ' on' : '');
+      btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+  }
+
+  // The five girls or the five boys, depending on the answer above.
+  // The first is selected straight away so nobody can get stuck on
+  // a question they did not notice.
+  function paintAvatars(gender) {
+    var box = $('fAvatar');
+    var list = Avatars.forGender(gender);
+    box.innerHTML = '';
+
+    for (var i = 0; i < list.length; i++) {
+      (function (a) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'avatar-pick';
+        b.setAttribute('data-av', a.id);
+        b.setAttribute('aria-pressed', 'false');
+        b.title = a.name + ' — ' + a.note;
+        b.innerHTML = '<span class="avatar-art">' + a.svg + '</span>' +
+                      '<span class="avatar-name">' + esc(a.name) + '</span>';
+        b.addEventListener('click', function () { pickAvatar(a.id); Sound.blip(); });
+        box.appendChild(b);
+      })(list[i]);
+    }
+
+    $('avatarField').hidden = false;
+    if (list.length) pickAvatar(list[0].id);
+  }
+
+  function clearAvatars() {
+    chosenAvatar = null;
+    $('fAvatar').innerHTML = '';
+    $('avatarField').hidden = true;
+  }
+
+  /* Show the five pictures that match whichever answer is ticked.
+     This reads the form rather than the click that changed it: a
+     child who presses Back and comes in again leaves Girl still
+     ticked, and clicking Girl a second time fires no change event -
+     which used to strand them with no pictures and no way to get
+     them back. */
+  function syncAvatars() {
+    var g = document.querySelector('#fGender input:checked');
+    if (g) { paintAvatars(g.value); } else { clearAvatars(); }
+  }
+
+  (function () {
+    var radios = document.querySelectorAll('#fGender input');
+    for (var i = 0; i < radios.length; i++) {
+      radios[i].addEventListener('change', function () {
+        Sound.unlock();
+        syncAvatars();
+      });
+    }
+  })();
 
   $('newCamperBtn').addEventListener('click', function () {
     Sound.unlock();
     $('pickWrap').hidden = true;
     $('newCamperForm').hidden = false;
     $('formError').hidden = true;
+    // A fresh camper gets a blank form, not the leftovers of the
+    // one before them.
+    $('newCamperForm').reset();
+    syncAvatars();
     $('fName').focus();
   });
 
@@ -245,10 +371,12 @@
     if (Store.nameTaken(name)) { return fail('Someone here already uses that name. Try adding your last initial.'); }
     if (!age || age < 5 || age > 15) { return fail('Please enter your age (5 to 15).'); }
     if (!genderEl) { return fail('Please pick one of the choices.'); }
+    if (!chosenAvatar) { return fail('Please pick a picture for yourself.'); }
 
     err.hidden = true;
-    Store.create(name, age, genderEl.value);
+    Store.create(name, age, genderEl.value, chosenAvatar);
     $('newCamperForm').reset();
+    clearAvatars();
     Sound.blip();
     goHome();
 
@@ -273,6 +401,29 @@
       fg + '</svg>';
   }
 
+  /* The scripture text can change between camps - a new translation,
+     a corrected typo. A saved "line 14 of 62" was counted against the
+     old wording, so replaying it would drop the camper into the wrong
+     verse. When the stamp does not match we rewind the unfinished run
+     to the top of its chapter and keep everything that was earned:
+     badges, best accuracy, completed chapters, run count. */
+  function loadChapterState(pid, ch) {
+    var cs = Store.chapter(pid, ch.num);
+    if (cs.txt === TEXT_VER) return cs;
+
+    if (cs.seg > 0) {
+      cs.seg = 0;
+      cs.keystrokes = 0;
+      cs.correct = 0;
+      cs.errors = 0;
+      cs.timeMs = 0;
+      cs.verses = 0;
+    }
+    cs.txt = TEXT_VER;
+    Store.saveChapter(pid, ch.num, cs);
+    return cs;
+  }
+
   // Leaving the typing screen by any route keeps the tallies and the
   // place in the chapter.
   function saveCurrentRun() {
@@ -287,7 +438,7 @@
     if (!p) { paintWelcome(); return; }
 
     $('chipName').textContent = p.name;
-    $('chipAvatar').textContent = initial(p.name);
+    paintChipAvatar(p);
     $('greetName').textContent = 'Hello, ' + p.name + '!';
 
     var totalDone = 0;
@@ -303,7 +454,7 @@
     grid.innerHTML = '';
     for (var i = 0; i < CHAPTERS.length; i++) {
       (function (ch) {
-        var cs = Store.chapter(p.id, ch.num);
+        var cs = loadChapterState(p.id, ch);
         var total = ch.segs.length;
         var running = cs.seg > 0 && cs.seg < total;
         var percent = cs.completed && !running ? 100 : Math.round((cs.seg / total) * 100);
@@ -359,7 +510,7 @@
         var cs = Store.chapter(p.id, CHAPTERS[j].num);
         if (cs.completed && cs.bestAcc !== null) { sum += cs.bestAcc; n++; }
       }
-      if (n > 0) rows.push({ name: p.name, id: p.id, avg: sum / n, done: n });
+      if (n > 0) rows.push({ name: p.name, id: p.id, avatar: p.avatar, avg: sum / n, done: n });
     }
     rows.sort(function (a, b) { return b.avg - a.avg; });
 
@@ -373,6 +524,7 @@
       var li = document.createElement('li');
       li.innerHTML =
         '<span class="rank">' + (r + 1) + '</span>' +
+        avatarHtml(rows[r], 'board-avatar') +
         '<span class="who' + (rows[r].id === me.id ? ' me' : '') + '">' + esc(rows[r].name) + '</span>' +
         '<span class="done">' + rows[r].done + '/3</span>' +
         '<span class="score">' + pct(rows[r].avg) + '%</span>';
@@ -415,7 +567,7 @@
     if (!p) { paintWelcome(); return; }
 
     var ch = chapterByNum(num);
-    var cs = Store.chapter(p.id, num);
+    var cs = loadChapterState(p.id, ch);
 
     // Finished last time? Start a clean run.
     if (cs.seg >= ch.segs.length) {
@@ -425,6 +577,7 @@
       cs.badge = keep.badge;
       cs.runs = keep.runs;
       cs.completed = keep.completed;
+      cs.txt = TEXT_VER;
     }
 
     T.ch = ch;
@@ -693,8 +846,10 @@
      10. Boot
      --------------------------------------------------------- */
 
+  paintTracks();
   paintSettings();
   Sound.setSfx(settings.sfx);
+  Sound.setTrack(settings.bgmTrack);
 
   // The browser will not let music start before the first click,
   // so if it was left on, kick it off at the first interaction.
