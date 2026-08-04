@@ -1,4 +1,4 @@
-# Bible Typing — Sermon on the Mount
+# VVGA Bible Typing — Sermon on the Mount
 
 A small offline typing site for a kids' camp. Campers type through
 **Matthew 5, 6 and 7**, one line at a time, and earn a badge for each

@@ -1,5 +1,5 @@
 /* ============================================================
-   Bible Typing - main application
+   VVGA Bible Typing - main application
    Plain script (no modules, no build step) so the folder can be
    copied onto a USB stick and index.html opened directly.
    ============================================================ */
@@ -244,7 +244,7 @@
     if (name.length < 2) { return fail('Please type your name (at least 2 letters).'); }
     if (Store.nameTaken(name)) { return fail('Someone here already uses that name. Try adding your last initial.'); }
     if (!age || age < 5 || age > 15) { return fail('Please enter your age (5 to 15).'); }
-    if (!genderEl) { return fail('Please pick one of the three choices.'); }
+    if (!genderEl) { return fail('Please pick one of the choices.'); }
 
     err.hidden = true;
     Store.create(name, age, genderEl.value);
