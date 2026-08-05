@@ -15,11 +15,28 @@
   // longer than this are split at a natural pause.
   var MAX_SEG = 140;
 
-  var CHAPTER_INFO = {
-    5: { theme: 'The Beatitudes', hint: 'Blessed are the poor in spirit…' },
-    6: { theme: "The Lord's Prayer", hint: 'Our Father in heaven, hallowed be Your name…' },
-    7: { theme: 'Ask, Seek, Knock',  hint: 'Ask, and it will be given to you…' }
+  /* Every passage, keyed by the id in the data file - which is also
+     the key its progress is filed under, so these must not be renamed
+     once a camp has started.
+
+     `set` is which row of the home screen it belongs to: the Sermon on
+     the Mount is the course everybody types, and "more" is the shelf
+     that opens up once they have earned it. */
+  var MOUNT = 'mount', MORE = 'more';
+
+  var PASSAGE_INFO = {
+    '5':     { set: MOUNT, theme: 'The Beatitudes' },
+    '6':     { set: MOUNT, theme: "The Lord's Prayer" },
+    '7':     { set: MOUNT, theme: 'Ask, Seek, Knock' },
+    'ps145': { set: MORE,  theme: 'A song of praise' },
+    'gen1':  { set: MORE,  theme: 'In the beginning' },
+    'eph6':  { set: MORE,  theme: 'The armour of God' },
+    'ps139': { set: MORE,  theme: 'Wonderfully made' },
+    'rom8':  { set: MORE,  theme: 'More than conquerors' }
   };
+
+  // What it takes to open the second row.
+  var UNLOCK_BADGE = 'silver';
 
   // Stamped onto every saved chapter so we can tell a place kept
   // against this text from a place kept against an older one.
@@ -64,12 +81,12 @@
           });
         }
       }
-      var info = CHAPTER_INFO[ch.chapter] || { theme: '', hint: '' };
+      var info = PASSAGE_INFO[ch.id] || { set: MORE, theme: '' };
       out.push({
-        num: ch.chapter,
-        title: 'Matthew ' + ch.chapter,
+        id: ch.id,
+        title: ch.ref,
+        set: info.set,
         theme: info.theme,
-        hint: info.hint,
         verseCount: ch.verses.length,
         segs: segs
       });
@@ -79,11 +96,19 @@
 
   var CHAPTERS = buildChapters(window.BIBLE_DATA);
 
-  function chapterByNum(n) {
+  function chapterById(id) {
     for (var i = 0; i < CHAPTERS.length; i++) {
-      if (CHAPTERS[i].num === n) return CHAPTERS[i];
+      if (CHAPTERS[i].id === id) return CHAPTERS[i];
     }
     return null;
+  }
+
+  function chaptersIn(set) {
+    var out = [];
+    for (var i = 0; i < CHAPTERS.length; i++) {
+      if (CHAPTERS[i].set === set) out.push(CHAPTERS[i]);
+    }
+    return out;
   }
 
   /* ---------------------------------------------------------
@@ -104,6 +129,32 @@
     if (acc >= 90) return 'silver';
     if (acc >= 85) return 'bronze';
     return 'pearl';
+  }
+
+  /* ---- what opens the second row ----
+
+     Every chapter of the Sermon on the Mount finished, none of them
+     below Silver. Finishing is not enough on its own: the point of the
+     extra passages is that they are earned by careful work, and Silver
+     is 90% under the current ladder. */
+
+  function meetsUnlock(cs) {
+    return !!(cs.completed && cs.badge && BADGES[cs.badge] &&
+              BADGES[cs.badge].rank >= BADGES[UNLOCK_BADGE].rank);
+  }
+
+  /** How many chapters of the Sermon are already up to standard, and
+      whether that is all of them. Wants a profile id. */
+  function unlockState(pid) {
+    var mount = chaptersIn(MOUNT), ready = 0;
+    for (var i = 0; i < mount.length; i++) {
+      if (meetsUnlock(Store.chapter(pid, mount[i].id))) ready++;
+    }
+    return { ready: ready, total: mount.length, open: ready === mount.length };
+  }
+
+  function isOpen(ch, pid) {
+    return ch.set === MOUNT || unlockState(pid).open;
   }
 
   /* ---- catching up the campers who typed under the old rules ----
@@ -469,7 +520,7 @@
      to the top of its chapter and keep everything that was earned:
      badges, best accuracy, completed chapters, run count. */
   function loadChapterState(pid, ch) {
-    var cs = Store.chapter(pid, ch.num);
+    var cs = Store.chapter(pid, ch.id);
     if (cs.txt === TEXT_VER) return cs;
 
     if (cs.seg > 0) {
@@ -482,7 +533,7 @@
       cs.verses = 0;
     }
     cs.txt = TEXT_VER;
-    Store.saveChapter(pid, ch.num, cs);
+    Store.saveChapter(pid, ch.id, cs);
     return cs;
   }
 
@@ -490,8 +541,20 @@
   // place in the chapter.
   function saveCurrentRun() {
     if (T.ch && T.pid && !$('screen-type').hidden) {
-      Store.saveChapter(T.pid, T.ch.num, T.cs);
+      Store.saveChapter(T.pid, T.ch.id, T.cs);
     }
+  }
+
+  // The one-line summary under a card: where they are, or how they did.
+  function progressNote(cs, total) {
+    if (cs.seg > 0 && cs.seg < total) return 'Line ' + (cs.seg + 1) + ' of ' + total;
+    if (cs.completed) return 'Best ' + pct(cs.bestAcc) + '% · ' + BADGES[cs.badge].label;
+    return 'Not started yet';
+  }
+
+  function percentDone(cs, total) {
+    var running = cs.seg > 0 && cs.seg < total;
+    return cs.completed && !running ? 100 : Math.round((cs.seg / total) * 100);
   }
 
   function goHome() {
@@ -503,64 +566,117 @@
     paintChipAvatar(p);
     $('greetName').textContent = 'Shalom, ' + p.name + '!';
 
-    var totalDone = 0;
-    for (var k in p.chapters) {
-      if (Object.prototype.hasOwnProperty.call(p.chapters, k) && p.chapters[k].completed) totalDone++;
-    }
-    $('greetSub').textContent = totalDone === 3
-      ? 'You have finished all three chapters. Try one again for a better badge!'
+    var lock = unlockState(p.id);
+    $('greetSub').textContent = lock.open
+      ? 'The whole shelf is open to you. Pick anything below.'
       : 'Pick a chapter and start typing. Your place is saved automatically.';
 
-    // chapter cards
-    var grid = $('chapterGrid');
+    paintMount(p);
+    paintMore(p, lock);
+    paintShelf(p);
+    paintBoard(p);
+    show('screen-home');
+  }
+
+  function paintMount(p) {
+    var grid = $('chapterGrid'), list = chaptersIn(MOUNT);
     grid.innerHTML = '';
-    for (var i = 0; i < CHAPTERS.length; i++) {
-      (function (ch) {
+    for (var i = 0; i < list.length; i++) {
+      (function (ch, n) {
         var cs = loadChapterState(p.id, ch);
         var total = ch.segs.length;
-        var running = cs.seg > 0 && cs.seg < total;
-        var percent = cs.completed && !running ? 100 : Math.round((cs.seg / total) * 100);
-
-        var note;
-        if (running) note = 'Line ' + (cs.seg + 1) + ' of ' + total;
-        else if (cs.completed) note = 'Best ' + pct(cs.bestAcc) + '% · ' + BADGES[cs.badge].label;
-        else note = 'Not started yet';
+        var percent = percentDone(cs, total);
 
         var card = document.createElement('button');
         card.type = 'button';
         card.className = 'chapter-card';
         card.innerHTML =
           (cs.badge ? '<span class="card-badge bg-' + cs.badge + '">★</span>' : '') +
-          '<div class="chapter-num">Chapter ' + ch.num + '</div>' +
+          '<div class="chapter-num">Chapter ' + n + '</div>' +
           '<div class="chapter-name">' + esc(ch.title) + '</div>' +
           '<div class="chapter-sub">' + esc(ch.theme) + ' · ' + ch.verseCount + ' verses</div>' +
           '<div class="ring-row">' + ringSvg(percent) +
             '<div><div class="ring-pct">' + percent + '%</div>' +
-            '<div class="ring-note">' + esc(note) + '</div></div>' +
+            '<div class="ring-note">' + esc(progressNote(cs, total)) + '</div></div>' +
           '</div>';
-        card.addEventListener('click', function () { openChapter(ch.num); });
+        card.addEventListener('click', function () { openChapter(ch.id); });
         grid.appendChild(card);
-      })(CHAPTERS[i]);
+      })(list[i], i + 5);
     }
-
-    paintShelf(p);
-    paintBoard(p);
-    show('screen-home');
   }
 
+  /* The second row. Locked tiles are shown rather than hidden: a shelf
+     you can see is something to aim at, and a row that appears out of
+     nowhere is just confusing. */
+  function paintMore(p, lock) {
+    var grid = $('moreGrid'), list = chaptersIn(MORE);
+    grid.innerHTML = '';
+
+    $('moreNote').textContent = lock.open
+      ? 'Unlocked — well done'
+      : 'Silver or better on all three chapters above (' +
+        lock.ready + ' of ' + lock.total + ' so far)';
+    $('moreWrap').className = 'more-wrap' + (lock.open ? '' : ' is-locked');
+
+    for (var i = 0; i < list.length; i++) {
+      (function (ch) {
+        var tile = document.createElement('button');
+        tile.type = 'button';
+        tile.className = 'tile';
+
+        if (!lock.open) {
+          tile.disabled = true;
+          tile.className += ' locked';
+          tile.title = 'Earn Silver on Matthew 5, 6 and 7 to open this';
+          tile.innerHTML =
+            '<span class="tile-lock" aria-hidden="true">&#128274;</span>' +
+            '<span class="tile-name">' + esc(ch.title) + '</span>' +
+            '<span class="tile-sub">Locked</span>';
+        } else {
+          var cs = loadChapterState(p.id, ch);
+          var total = ch.segs.length;
+          tile.innerHTML =
+            (cs.badge ? '<span class="tile-badge bg-' + cs.badge + '">★</span>' : '') +
+            '<span class="tile-name">' + esc(ch.title) + '</span>' +
+            '<span class="tile-sub">' + esc(ch.theme) + '</span>' +
+            '<span class="tile-note">' + esc(progressNote(cs, total)) + '</span>';
+          tile.addEventListener('click', function () { openChapter(ch.id); });
+        }
+        grid.appendChild(tile);
+      })(list[i]);
+    }
+  }
+
+  /* The shelf shows the three Sermon chapters always, and any extra
+     passage they have actually earned a badge on - so it grows with
+     them instead of opening as a wall of question marks. */
   function paintShelf(p) {
     var shelf = $('badgeShelf');
     shelf.innerHTML = '';
     for (var i = 0; i < CHAPTERS.length; i++) {
       var ch = CHAPTERS[i];
-      var cs = Store.chapter(p.id, ch.num);
+      var cs = Store.chapter(p.id, ch.id);
+      if (ch.set !== MOUNT && !cs.badge) continue;
+
       var item = document.createElement('div');
       item.className = 'shelf-item';
       item.innerHTML = cs.badge
-        ? '<div class="shelf-disc bg-' + cs.badge + '">★</div><div class="shelf-label">Mt ' + ch.num + ' · ' + BADGES[cs.badge].label + '</div>'
-        : '<div class="shelf-disc empty">?</div><div class="shelf-label">Mt ' + ch.num + '</div>';
+        ? '<div class="shelf-disc bg-' + cs.badge + '">★</div>' +
+          '<div class="shelf-label">' + esc(shortRef(ch)) + ' · ' + BADGES[cs.badge].label + '</div>'
+        : '<div class="shelf-disc empty">?</div>' +
+          '<div class="shelf-label">' + esc(shortRef(ch)) + '</div>';
       shelf.appendChild(item);
     }
+  }
+
+  // "Matthew 5" is too wide for a 46px disc; "Mt 5" is not.
+  function shortRef(ch) {
+    return ch.title
+      .replace('Matthew ', 'Mt ')
+      .replace('Genesis ', 'Gen ')
+      .replace('Ephesians ', 'Eph ')
+      .replace('Romans ', 'Rom ')
+      .replace('Psalm ', 'Ps ');
   }
 
   function paintBoard(me) {
@@ -569,10 +685,16 @@
     for (var i = 0; i < list.length; i++) {
       var p = list[i], sum = 0, n = 0;
       for (var j = 0; j < CHAPTERS.length; j++) {
-        var cs = Store.chapter(p.id, CHAPTERS[j].num);
+        var cs = Store.chapter(p.id, CHAPTERS[j].id);
         if (cs.completed && cs.bestAcc !== null) { sum += cs.bestAcc; n++; }
       }
-      if (n > 0) rows.push({ name: p.name, id: p.id, avatar: p.avatar, avg: sum / n, done: n });
+      // Out of what is open to them, so a camper who has not unlocked
+      // the extra passages is not shown as 3 out of 8.
+      var outOf = unlockState(p.id).open ? CHAPTERS.length : chaptersIn(MOUNT).length;
+      if (n > 0) {
+        rows.push({ name: p.name, id: p.id, avatar: p.avatar,
+                    avg: sum / n, done: n, outOf: outOf });
+      }
     }
     rows.sort(function (a, b) { return b.avg - a.avg; });
 
@@ -588,7 +710,7 @@
         '<span class="rank">' + (r + 1) + '</span>' +
         avatarHtml(rows[r], 'board-avatar') +
         '<span class="who' + (rows[r].id === me.id ? ' me' : '') + '">' + esc(rows[r].name) + '</span>' +
-        '<span class="done">' + rows[r].done + '/3</span>' +
+        '<span class="done">' + rows[r].done + '/' + rows[r].outOf + '</span>' +
         '<span class="score">' + pct(rows[r].avg) + '%</span>';
       ol.appendChild(li);
     }
@@ -625,11 +747,15 @@
 
   var capture = $('capture');
 
-  function openChapter(num) {
+  function openChapter(id) {
     var p = Store.active();
     if (!p) { paintWelcome(); return; }
 
-    var ch = chapterByNum(num);
+    var ch = chapterById(id);
+    // Nothing should route here while a passage is still locked, but
+    // an old bookmark or a stale click must not sneak past the gate.
+    if (!ch || !isOpen(ch, p.id)) { goHome(); return; }
+
     var cs = loadChapterState(p.id, ch);
 
     // Finished last time? Start a clean run.
@@ -818,7 +944,7 @@
     T.cs.verses++;
     T.idx++;
     T.cs.seg = T.idx;
-    Store.saveChapter(T.pid, T.ch.num, T.cs);
+    Store.saveChapter(T.pid, T.ch.id, T.cs);
 
     if (clean) {
       Sound.verse();
@@ -846,7 +972,7 @@
   });
 
   $('backBtn').addEventListener('click', function () {
-    Store.saveChapter(T.pid, T.ch.num, T.cs);
+    Store.saveChapter(T.pid, T.ch.id, T.cs);
     goHome();
   });
 
@@ -871,7 +997,7 @@
     cs.runs++;
     if (cs.bestAcc === null || acc > cs.bestAcc) { cs.bestAcc = acc; }
     if (!cs.badge || BADGES[key].rank > BADGES[cs.badge].rank) { cs.badge = key; }
-    Store.saveChapter(T.pid, ch.num, cs);
+    Store.saveChapter(T.pid, ch.id, cs);
 
     var b = BADGES[key];
     $('doneTitle').textContent = ch.title;
@@ -888,8 +1014,10 @@
     $('rVerses').textContent = ch.verseCount;
     $('rChars').textContent = cs.correct;
 
-    var isLast = ch.num >= 7;
-    $('doneNextBtn').textContent = isLast ? 'Back to chapters' : 'Next chapter →';
+    // Finishing this one may have just opened the second row, so work
+    // out what comes next only now that the badge is saved.
+    var next = nextOpenAfter(ch, T.pid);
+    $('doneNextBtn').textContent = next ? 'Next: ' + next.title + ' →' : 'Back to chapters';
 
     show('screen-done');
     Sound.fanfare();
@@ -911,11 +1039,22 @@
     setTimeout(function () { box.innerHTML = ''; }, 6000);
   }
 
-  $('againBtn').addEventListener('click', function () { openChapter(T.ch.num); });
+  /** The next passage in reading order that this camper may open, or
+      null if they are at the end of what is available to them. */
+  function nextOpenAfter(ch, pid) {
+    var seen = false;
+    for (var i = 0; i < CHAPTERS.length; i++) {
+      if (CHAPTERS[i].id === ch.id) { seen = true; continue; }
+      if (seen && isOpen(CHAPTERS[i], pid)) return CHAPTERS[i];
+    }
+    return null;
+  }
+
+  $('againBtn').addEventListener('click', function () { openChapter(T.ch.id); });
 
   $('doneNextBtn').addEventListener('click', function () {
-    if (T.ch.num >= 7) { goHome(); return; }
-    openChapter(T.ch.num + 1);
+    var next = nextOpenAfter(T.ch, T.pid);
+    if (next) { openChapter(next.id); } else { goHome(); }
   });
 
   /* ---------------------------------------------------------

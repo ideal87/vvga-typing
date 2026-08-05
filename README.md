@@ -2,7 +2,8 @@
 
 A small offline typing site for a kids' camp. Campers type through
 **Matthew 5, 6 and 7**, one line at a time, and earn a badge for each
-chapter they finish.
+chapter they finish. Careful work opens a second shelf of five more
+passages — Psalm 145, Genesis 1, Ephesians 6, Psalm 139 and Romans 8.
 
 No install, no internet, no accounts, no server.
 
@@ -21,7 +22,7 @@ folders sitting next to it.
 ```
 index.html
 css/style.css
-js/bible-bsb.js     <- the scripture text
+js/bible-bsb.js     <- all eight passages, the scripture text
 js/avatars.js       <- the ten Bible-person pictures
 js/audio.js
 js/storage.js
@@ -79,8 +80,9 @@ for the camp and stay on it.
 1. **Welcome screen** — they tap their name, or press *I'm new here* and
    enter name, age and whether they're a girl or a boy, then pick a
    Bible person as their picture.
-2. **Chapter screen** — three cards, one per chapter, each showing how
-   far they've got and which badge they've earned.
+2. **Chapter screen** — three cards, one per chapter of the Sermon,
+   each showing how far they've got and which badge they've earned,
+   with the locked second row underneath.
 3. **Typing screen** — one line of scripture at a time. Correct letters
    turn green, wrong ones turn red, and a soft *thunk* plays on a
    mistake. What they are actually typing is echoed underneath the verse
@@ -111,6 +113,33 @@ complete a chapter and come away with an empty slot on the shelf.
 
 Their best badge for each chapter is kept, so typing a chapter again can
 only improve it, never lose it.
+
+### More to type
+
+Below the three chapter cards sits a row of five small tiles:
+
+| Passage | |
+|---|---|
+| **Psalm 145** | A song of praise |
+| **Genesis 1** | In the beginning |
+| **Ephesians 6** | The armour of God |
+| **Psalm 139** | Wonderfully made |
+| **Romans 8** | More than conquerors |
+
+They open only when **all three chapters of the Sermon are finished at
+Silver or better** — 90% under the current ladder. Finishing is not
+enough on its own; the point of the extra passages is that they are
+earned by careful work, which is the same thing the badges reward.
+
+Until then the tiles are shown but greyed out with a padlock, and the
+heading counts down: *"Silver or better on all three chapters above
+(2 of 3 so far)"*. They are deliberately **visible rather than hidden** —
+a shelf you can see is something to aim at, and a row that appears out
+of nowhere is just confusing.
+
+To change the bar, edit `UNLOCK_BADGE` in `js/app.js` (`'bronze'`,
+`'silver'`, `'gold'`). To change which passages are on the shelf, see
+*Changing translation* below.
 
 ### A typo you mend costs half
 
@@ -297,19 +326,30 @@ All of the scripture lives in one file, `js/bible-bsb.js`, in this shape:
 
 ```js
 window.BIBLE_DATA = [
-  {"chapter":5,"verses":[
+  {"id":"5","ref":"Matthew 5","verses":[
      {"n":1,"t":"When Jesus saw the crowds, He went up on the mountain..."},
      {"n":2,"t":"and He began to teach them, saying:"}
   ]},
-  {"chapter":6,"verses":[ ... ]},
-  {"chapter":7,"verses":[ ... ]}
+  {"id":"6","ref":"Matthew 6","verses":[ ... ]},
+  {"id":"ps145","ref":"Psalm 145","verses":[ ... ]}
 ];
 ```
+
+- **`id`** is the key a camper's progress is filed under. **Renaming one
+  orphans every record saved against it**, so treat these as permanent
+  once a camp has started. Matthew keeps the bare `"5"`, `"6"`, `"7"`
+  it was first released with for exactly this reason.
+- **`ref`** is the heading campers see. Change it freely.
 
 To change translation, replace the `"t"` value of each verse with the
 new text. Nothing else needs touching — the app counts the verses it
 finds and re-splits the long ones on its own, so a translation with
 different verse lengths just works.
+
+To add or swap a passage, add its entry here and a matching line in
+`PASSAGE_INFO` in `js/app.js` giving it a `set` (`MOUNT` for the top row,
+`MORE` for the shelf) and a one-line theme. The rows build themselves
+from that.
 
 Four things to keep right:
 
@@ -319,10 +359,11 @@ Four things to keep right:
 3. Use straight apostrophes (`'`), not curly ones (`’`) — a curly one is
    a character no child can find on the keyboard, and it will be marked
    wrong. The BSB text here has already been normalised this way, along
-   with its curly quotes and its one em dash.
-4. **Bump `TEXT_VER` in `js/app.js`.** See *Updating the site does not
-   wipe anyone* above — this is what keeps a camper who is halfway
-   through a chapter from being dropped into the wrong verse.
+   with its curly quotes and its em dashes.
+4. **Bump `TEXT_VER` in `js/app.js`** *if you change existing wording.*
+   See *Updating the site does not wipe anyone* above. Adding a whole new
+   passage does not need it — untouched passages keep their line
+   numbering, so nobody is rewound for someone else's new text.
 
 One caution: **the NIV is under copyright.** Copying it onto sticks that
 go home with families is a different thing from reading it in a room
@@ -338,13 +379,15 @@ build has no such issue, which is why it's the default.
 | Badge thresholds (95 / 90 / 85) | `js/app.js`, `badgeFor()` |
 | Credit for mending a typo (0.5) | `js/app.js`, `FIX_CREDIT` |
 | Max characters per line (140) | `js/app.js`, `MAX_SEG` |
-| Chapter subtitles | `js/app.js`, `CHAPTER_INFO` |
+| Which passages, which row, subtitles | `js/app.js`, `PASSAGE_INFO` |
+| Badge needed to open the second row | `js/app.js`, `UNLOCK_BADGE` |
+| Revising old scores after a rule change | `js/app.js`, `SCORE_VER` |
 | Text stamp, after editing scripture | `js/app.js`, `TEXT_VER` |
 | The ten pictures | `js/avatars.js`, `PEOPLE` |
 | Background tunes | `js/audio.js`, `TRACKS` |
 | Sound pitches and volume | `js/audio.js` |
 | Colours, text sizes | `css/style.css`, the `:root` block at the top |
 
-To use a different set of chapters entirely, put them in
-`js/bible-bsb.js` with their own chapter numbers and add matching
-entries to `CHAPTER_INFO`.
+To use a different set of passages entirely, put them in
+`js/bible-bsb.js` with their own ids and add matching entries to
+`PASSAGE_INFO`.

@@ -436,6 +436,86 @@ main {
 .bg-bronze { background: linear-gradient(145deg,#e2a76d,#a9682a); }
 .bg-pearl  { background: linear-gradient(145deg,#ffffff,#dbe0ee); color: var(--ink-faint); border: 1px solid var(--line); }
 
+/* ---------------- the second row: more to type ---------------- */
+
+.more-wrap { margin-bottom: 22px; }
+
+.more-title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 11px;
+  font: 700 17px var(--sans);
+  color: var(--ink);
+}
+.more-note {
+  font: 600 12.5px var(--sans);
+  color: var(--ink-faint);
+  background: #eeeef8;
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+.more-wrap:not(.is-locked) .more-note {
+  color: var(--good);
+  background: var(--good-bg);
+}
+
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 13px 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: transform .1s, box-shadow .18s, border-color .18s;
+}
+.tile:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand);
+  box-shadow: var(--shadow);
+}
+.tile-name { font: 700 16px var(--sans); }
+.tile-sub { font-size: 12.5px; color: var(--ink-faint); }
+.tile-note { font: 600 12px var(--sans); color: var(--brand); margin-top: 4px; }
+
+.tile-badge {
+  position: absolute;
+  top: 11px; right: 11px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 11px;
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Locked tiles stay visible on purpose - a shelf you can see is
+   something to aim at. They must not look clickable. */
+.tile.locked {
+  background: #f5f5fb;
+  border-style: dashed;
+  border-color: #dcdcec;
+  box-shadow: none;
+  cursor: not-allowed;
+  color: var(--ink-faint);
+}
+.tile.locked:hover { transform: none; border-color: #dcdcec; box-shadow: none; }
+.tile.locked .tile-name { color: var(--ink-faint); font-weight: 600; }
+.tile-lock { font-size: 15px; line-height: 1; margin-bottom: 3px; opacity: .55; }
+
 .two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
