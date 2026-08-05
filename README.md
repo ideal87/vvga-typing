@@ -100,10 +100,14 @@ Awarded on the accuracy for that run of the chapter:
 
 | Accuracy | Badge |
 |---|---|
-| 98% and up | **Gold** |
-| 95–97% | **Silver** |
-| 90–94% | **Bronze** |
-| under 90% | **Pearl** (white) |
+| 95% and up | **Gold** |
+| 90–94% | **Silver** |
+| 85–89% | **Bronze** |
+| anything less | **Pearl** (white) |
+
+Pearl has no threshold on purpose. Typing all 58 lines of Matthew 5 is
+the hard part, so finishing always earns something — there is no way to
+complete a chapter and come away with an empty slot on the shelf.
 
 Their best badge for each chapter is kept, so typing a chapter again can
 only improve it, never lose it.
@@ -120,14 +124,17 @@ extra keystroke that cancelled out the credit. Noticing your own
 mistakes is the whole thing we are trying to teach, so it should show up
 in the number.
 
-On a real 94-character verse with three typos:
+Measured on a real 94-character verse with six typos, typed both ways:
 
 | What they did | Accuracy | Badge |
 |---|---|---|
-| Left all three standing | 97% | Silver |
-| Backspaced and mended all three | **98%** | **Gold** |
+| Left all six standing | 94% | Silver |
+| Backspaced and mended all six | **97%** | **Gold** |
 
-Under the old sum both scored 97%. Mending is now worth a badge tier.
+Under the old sum **both of those scored 94%** — the six extra
+keystrokes spent mending cancelled out the credit exactly, so the child
+who repaired their work gained nothing for it. Mending is now worth a
+badge tier.
 
 It cannot be gamed into a perfect score: the credit handed back is at
 most half of what the mistake took away, so accuracy can never climb
@@ -292,7 +299,7 @@ build has no such issue, which is why it's the default.
 
 | What | Where |
 |---|---|
-| Badge thresholds (98 / 95 / 90) | `js/app.js`, `badgeFor()` |
+| Badge thresholds (95 / 90 / 85) | `js/app.js`, `badgeFor()` |
 | Credit for mending a typo (0.5) | `js/app.js`, `FIX_CREDIT` |
 | Max characters per line (140) | `js/app.js`, `MAX_SEG` |
 | Chapter subtitles | `js/app.js`, `CHAPTER_INFO` |

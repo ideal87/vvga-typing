@@ -94,13 +94,15 @@
     gold:   { rank: 4, label: 'Gold',   cls: 'gold',   msg: 'Almost perfect. That is beautifully careful work.' },
     silver: { rank: 3, label: 'Silver', cls: 'silver', msg: 'Excellent accuracy — so close to gold!' },
     bronze: { rank: 2, label: 'Bronze', cls: 'bronze', msg: 'Well done. Steady hands and a careful eye.' },
-    pearl:  { rank: 1, label: 'Pearl',  cls: 'pearl',  msg: 'You typed the whole chapter — that is the hard part. Try it again and 90% earns you Bronze.' }
+    pearl:  { rank: 1, label: 'Pearl',  cls: 'pearl',  msg: 'You typed the whole chapter — that is the hard part. Try it again and 85% earns you Bronze.' }
   };
 
+  // Pearl has no threshold on purpose: finishing a whole chapter is
+  // the hard part, so it always earns something.
   function badgeFor(acc) {
-    if (acc >= 98) return 'gold';
-    if (acc >= 95) return 'silver';
-    if (acc >= 90) return 'bronze';
+    if (acc >= 95) return 'gold';
+    if (acc >= 90) return 'silver';
+    if (acc >= 85) return 'bronze';
     return 'pearl';
   }
 
