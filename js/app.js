@@ -288,6 +288,54 @@
 
   var settings = Store.settings();
 
+  /* Colour themes. The id is what goes on <html data-theme>, which is
+     where css/style.css picks the palette up; 'violet' is the original
+     and needs no attribute at all. The swatch is the bright colour the
+     camper is really choosing - see the note in the stylesheet for why
+     the top bar itself uses a deeper relative of it. */
+  var THEMES = [
+    { id: 'violet', name: 'Purple', swatch: '#5b4bd6' },
+    { id: 'green',  name: 'Green',  swatch: '#4bd65f' },
+    { id: 'pink',   name: 'Pink',   swatch: '#ff7bb0' },
+    { id: 'blue',   name: 'Blue',   swatch: '#5cc6e8' }
+  ];
+
+  function knownTheme(id) {
+    for (var i = 0; i < THEMES.length; i++) {
+      if (THEMES[i].id === id) return id;
+    }
+    return THEMES[0].id;
+  }
+
+  function applyTheme(id) {
+    var el = document.documentElement;
+    if (id === THEMES[0].id) { el.removeAttribute('data-theme'); }
+    else { el.setAttribute('data-theme', id); }
+  }
+
+  function paintThemes() {
+    var sel = $('themePick');
+    sel.innerHTML = '';
+    for (var i = 0; i < THEMES.length; i++) {
+      var o = document.createElement('option');
+      o.value = THEMES[i].id;
+      // The dot gives them the colour itself, not just its name.
+      o.textContent = '● ' + THEMES[i].name;
+      o.style.color = THEMES[i].swatch;
+      sel.appendChild(o);
+    }
+    settings.theme = knownTheme(settings.theme);
+    sel.value = settings.theme;
+  }
+
+  $('themePick').addEventListener('change', function () {
+    settings.theme = knownTheme(this.value);
+    applyTheme(settings.theme);
+    Store.saveSettings(settings);
+    Sound.unlock();
+    Sound.blip();
+  });
+
   // Fill the tune menu from whatever loops audio.js offers, so
   // adding a fourth one there needs no change here.
   function paintTracks() {
@@ -310,6 +358,7 @@
     $('bgmBtn').setAttribute('aria-pressed', settings.bgm ? 'true' : 'false');
     $('sfxGlyph').innerHTML = settings.sfx ? '&#128266;' : '&#128263;';
     $('bgmTrack').value = settings.bgmTrack;
+    $('themePick').value = settings.theme;
   }
 
   function applySettings() {
@@ -1062,6 +1111,8 @@
      --------------------------------------------------------- */
 
   paintTracks();
+  paintThemes();
+  applyTheme(settings.theme);
   paintSettings();
   Sound.setSfx(settings.sfx);
   Sound.setTrack(settings.bgmTrack);

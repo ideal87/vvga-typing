@@ -266,6 +266,41 @@ appear in the menu on its own.
 
 ---
 
+## Colours
+
+The last menu in the top-right corner changes the site's colour. Four to
+pick from, each shown with its own dot:
+
+| | |
+|---|---|
+| **Purple** | the original |
+| **Green** | |
+| **Pink** | |
+| **Blue** | |
+
+The choice is remembered per machine, alongside the sound switches — it
+belongs to the computer, not to a camper, so switching camper does not
+change the colour back.
+
+Only the brand family and the page wash change. Badges keep their gold,
+silver and bronze, and right/wrong stay green and red, so a green theme
+can never make a mistake look correct.
+
+**A note on the shades.** The bright colour on the menu dot is what a
+camper is choosing, but the top bar and the buttons use a deeper
+relative of it. White text on bright green is 1.9:1 — effectively
+unreadable. Every shade actually used behind white text was checked and
+clears WCAG AA (4.5:1); the lowest of the twelve is 4.55:1. If you
+change a palette in the `[data-theme]` blocks in `css/style.css`, check
+the new colour the same way rather than trusting how it looks on a good
+monitor.
+
+The themes live in `THEMES` in `js/app.js` (id, menu name, dot colour)
+and the palettes in `css/style.css`. Adding a fifth needs one entry in
+each.
+
+---
+
 ## Progress and saving
 
 Progress saves automatically after every line, into the browser's own
@@ -385,6 +420,7 @@ build has no such issue, which is why it's the default.
 | Text stamp, after editing scripture | `js/app.js`, `TEXT_VER` |
 | The ten pictures | `js/avatars.js`, `PEOPLE` |
 | Background tunes | `js/audio.js`, `TRACKS` |
+| Colour themes | `js/app.js` `THEMES` + `css/style.css` `[data-theme]` |
 | Sound pitches and volume | `js/audio.js` |
 | Colours, text sizes | `css/style.css`, the `:root` block at the top |
 

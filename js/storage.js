@@ -19,7 +19,7 @@ window.Store = (function () {
     return {
       v: 1,
       activeId: null,
-      settings: { sfx: true, bgm: false, bgmTrack: 'stream' },
+      settings: { sfx: true, bgm: false, bgmTrack: 'stream', theme: 'violet' },
       profiles: []
     };
   }
@@ -193,7 +193,8 @@ window.Store = (function () {
       bgm: s.bgm === true,
       // Saved before the extra tunes existed? Fall back to the
       // original loop rather than to nothing.
-      bgmTrack: typeof s.bgmTrack === 'string' ? s.bgmTrack : 'stream'
+      bgmTrack: typeof s.bgmTrack === 'string' ? s.bgmTrack : 'stream',
+      theme: typeof s.theme === 'string' ? s.theme : 'violet'
     };
   }
 
@@ -202,7 +203,8 @@ window.Store = (function () {
     d.settings = {
       sfx: !!s.sfx,
       bgm: !!s.bgm,
-      bgmTrack: typeof s.bgmTrack === 'string' ? s.bgmTrack : 'stream'
+      bgmTrack: typeof s.bgmTrack === 'string' ? s.bgmTrack : 'stream',
+      theme: typeof s.theme === 'string' ? s.theme : 'violet'
     };
     write(d);
   }

@@ -15,6 +15,8 @@
   --brand:      #5b4bd6;
   --brand-dk:   #4536b8;
   --brand-lt:   #ece9ff;
+  --brand-2:    #7a5ce0;               /* the far end of every brand gradient */
+  --brand-glow: rgba(91, 75, 214, .32);
 
   --good:       #17915f;
   --good-bg:    #d6f5e3;
@@ -36,6 +38,47 @@
   --mono: ui-monospace, "Cascadia Mono", "Cascadia Code", Consolas,
           "DejaVu Sans Mono", "Courier New", monospace;
   --sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ---------------- colour themes ----------------
+   Set by a data-theme attribute on <html>. Only the brand family and
+   the page wash change; ink, badges and the good/bad colours stay put
+   so a green theme cannot turn a mistake green.
+
+   Every shade here was checked against white text: the topbar, the
+   chip and the primary buttons all clear WCAG AA (4.5:1) in all four.
+   That is why the bright colours a camper picks from the menu are the
+   swatch and the accents, while the bar itself uses a deeper relative
+   of the same hue - white on bright green is unreadable. */
+
+:root[data-theme="green"] {
+  --brand:      #15803d;
+  --brand-dk:   #106630;
+  --brand-lt:   #dcf7e3;
+  --brand-2:    #18863f;
+  --brand-glow: rgba(21, 128, 61, .32);
+  --bg-1:       #f0f9f2;
+  --bg-2:       #e4f4ea;
+}
+
+:root[data-theme="pink"] {
+  --brand:      #c2185b;
+  --brand-dk:   #9c1249;
+  --brand-lt:   #fde4ee;
+  --brand-2:    #d92b74;
+  --brand-glow: rgba(194, 24, 91, .32);
+  --bg-1:       #fdf1f6;
+  --bg-2:       #fbe7f0;
+}
+
+:root[data-theme="blue"] {
+  --brand:      #0e7490;
+  --brand-dk:   #0b5c73;
+  --brand-lt:   #dcf2fa;
+  --brand-2:    #10809f;
+  --brand-glow: rgba(14, 116, 144, .32);
+  --bg-1:       #eef8fc;
+  --bg-2:       #e0f0f8;
 }
 
 * { box-sizing: border-box; }
@@ -73,9 +116,9 @@ main {
 /* ---------------- top bar ---------------- */
 
 .topbar {
-  background: linear-gradient(100deg, var(--brand) 0%, #7a5ce0 100%);
+  background: linear-gradient(100deg, var(--brand) 0%, var(--brand-2) 100%);
   color: #fff;
-  box-shadow: 0 2px 14px rgba(69, 54, 184, .28);
+  box-shadow: 0 2px 14px var(--brand-glow);
   position: sticky;
   top: 0;
   z-index: 30;
@@ -169,6 +212,8 @@ main {
    ink-on-paper colours of its own or it inherits white on white. */
 .track-select option { color: var(--ink); background: #fff; }
 
+.theme-select { max-width: 118px; }
+
 /* ---------------- generic bits ---------------- */
 
 .card {
@@ -201,7 +246,7 @@ main {
 .btn-primary {
   background: var(--brand);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(91, 75, 214, .32);
+  box-shadow: 0 4px 12px var(--brand-glow);
 }
 .btn-primary:hover:not(:disabled) { background: var(--brand-dk); }
 
@@ -585,7 +630,7 @@ main {
   height: 100%;
   width: 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--brand), #8b6ff0);
+  background: linear-gradient(90deg, var(--brand), var(--brand-2));
   transition: width .3s ease;
 }
 .progress-text { font: 600 13px var(--sans); color: var(--ink-soft); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -824,6 +869,13 @@ main {
   .brand span { display: none; }
   .brand { padding: 6px 4px; }
   .topbar-inner { gap: 8px; }
+  /* Two menus, two buttons and the camper all have to fit. The name
+     goes (the picture still says whose turn it is) and the colour
+     menu narrows to its dot, which is the part that matters. */
+  .chip span:not(.chip-avatar) { display: none; }
+  .chip { padding: 5px; }
+  .track-select { max-width: 92px; }
+  .theme-select { max-width: 58px; padding: 7px 4px; }
 }
 
 @media (max-width: 420px) {
@@ -833,7 +885,8 @@ main {
   .brand { font-size: 17px; gap: 6px; padding: 6px 2px; }
   .brand-icon { width: 22px; height: 22px; }
   .chip { padding: 5px 10px 5px 5px; font-size: 13px; }
-  .track-select { max-width: 104px; padding: 7px 6px; font-size: 12px; }
+  .track-select { max-width: 66px; padding: 7px 3px; font-size: 12px; }
+  .theme-select { max-width: 44px; padding: 7px 2px; font-size: 12px; }
   .avatar-row { gap: 5px; }
   .avatar-pick { padding: 6px 2px 5px; }
   .avatar-art { width: 38px; height: 38px; }
