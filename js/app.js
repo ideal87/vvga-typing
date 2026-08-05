@@ -143,9 +143,23 @@
     return m + ':' + (s % 60 < 10 ? '0' : '') + (s % 60);
   }
 
+  /* How much of a typo is forgiven once the camper goes back and
+     repairs it. Half: fixing a mistake should clearly beat leaving
+     it, without making mistakes free. */
+  var FIX_CREDIT = 0.5;
+
+  /* Accuracy, with one deliberate soft spot. Under the plain sum a
+     wrong letter was banked forever, so a child who spotted their own
+     mistake and mended it scored no better than one who shrugged and
+     carried on - and noticing your own mistakes is the whole habit we
+     are trying to build. A repaired typo now costs half.
+
+     It cannot climb over 100%: the credit given back is at most half
+     of what was taken away. */
   function accuracyOf(cs) {
     if (!cs.keystrokes) return 100;
-    return (cs.correct / cs.keystrokes) * 100;
+    var forgiven = (cs.fixed || 0) * FIX_CREDIT;
+    return Math.min(((cs.correct + forgiven) / cs.keystrokes) * 100, 100);
   }
 
   function wpmOf(cs) {
@@ -416,6 +430,7 @@
       cs.keystrokes = 0;
       cs.correct = 0;
       cs.errors = 0;
+      cs.fixed = 0;
       cs.timeMs = 0;
       cs.verses = 0;
     }
@@ -556,6 +571,7 @@
     idx: 0,
     target: '',
     typed: '',
+    bad: {},        // slots in this line that were once typed wrong
     lastAt: 0,      // timestamp of previous keystroke, for active-time
     locked: false   // true while the finish animation plays
   };
@@ -596,6 +612,9 @@
     var seg = T.ch.segs[T.idx];
     T.target = seg.text;
     T.typed = '';
+    // Which letters of THIS line went wrong. Cleared with the line,
+    // so a repair only ever counts against the mistake it repairs.
+    T.bad = {};
     T.locked = false;
     capture.value = '';
 
@@ -696,13 +715,23 @@
       if (T.lastAt && now - T.lastAt < 5000) { T.cs.timeMs += now - T.lastAt; }
       T.lastAt = now;
 
-      var wrong = false;
+      var wrong = false, fixes = 0;
       for (var i = prev.length; i < val.length; i++) {
         T.cs.keystrokes++;
-        if (val.charAt(i) === T.target.charAt(i)) { T.cs.correct++; }
-        else { T.cs.errors++; wrong = true; }
+        if (val.charAt(i) === T.target.charAt(i)) {
+          T.cs.correct++;
+          // Right letter in a slot that had been wrong: they went
+          // back and mended it, so hand half the penalty back.
+          if (T.bad[i]) { delete T.bad[i]; T.cs.fixed++; fixes++; }
+        } else {
+          T.cs.errors++;
+          T.bad[i] = true;
+          wrong = true;
+        }
       }
       if (wrong) { Sound.error(); shake(); }
+      // Say so, or the leniency is invisible and teaches nothing.
+      else if (fixes) { setHint('Good catch! A mistake you mend only counts half.', 'cheer'); }
     }
 
     T.typed = val;

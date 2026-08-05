@@ -108,6 +108,40 @@ Awarded on the accuracy for that run of the chapter:
 Their best badge for each chapter is kept, so typing a chapter again can
 only improve it, never lose it.
 
+### A typo you mend costs half
+
+Accuracy is `correct letters ÷ letters typed`, with one deliberate soft
+spot: **a wrong letter the camper goes back and repairs counts half.**
+
+The reason is that the plain sum quietly punished the better habit. A
+child who spotted their own mistake, backspaced and mended it scored
+*no better* than one who shrugged and typed on — the repair cost them an
+extra keystroke that cancelled out the credit. Noticing your own
+mistakes is the whole thing we are trying to teach, so it should show up
+in the number.
+
+On a real 94-character verse with three typos:
+
+| What they did | Accuracy | Badge |
+|---|---|---|
+| Left all three standing | 97% | Silver |
+| Backspaced and mended all three | **98%** | **Gold** |
+
+Under the old sum both scored 97%. Mending is now worth a badge tier.
+
+It cannot be gamed into a perfect score: the credit handed back is at
+most half of what the mistake took away, so accuracy can never climb
+over 100%. Deliberately typing a wrong letter and correcting it always
+leaves a camper worse off than simply typing the right one.
+
+The camper is told, the first time it happens — *"Good catch! A mistake
+you mend only counts half."* — because a leniency nobody notices changes
+nobody's habits. The **Oops** counter still shows every mistake made,
+mended or not; it is the accuracy that softens.
+
+The dial is `FIX_CREDIT` in `js/app.js`: `0.5` today, `0` restores the
+old strict sum, `1` makes a mended typo entirely free.
+
 ### Their picture
 
 Answering *Girl* or *Boy* opens five little Bible people to choose
@@ -259,6 +293,7 @@ build has no such issue, which is why it's the default.
 | What | Where |
 |---|---|
 | Badge thresholds (98 / 95 / 90) | `js/app.js`, `badgeFor()` |
+| Credit for mending a typo (0.5) | `js/app.js`, `FIX_CREDIT` |
 | Max characters per line (140) | `js/app.js`, `MAX_SEG` |
 | Chapter subtitles | `js/app.js`, `CHAPTER_INFO` |
 | Text stamp, after editing scripture | `js/app.js`, `TEXT_VER` |

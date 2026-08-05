@@ -58,6 +58,7 @@ window.Store = (function () {
       seg: 0,          // which typing segment comes next
       keystrokes: 0,   // letters typed in the current run
       errors: 0,       // wrong letters in the current run
+      fixed: 0,        // of those, the ones they went back and mended
       correct: 0,      // correct letters in the current run
       timeMs: 0,       // time actually spent typing
       verses: 0,       // segments finished in the current run
