@@ -143,6 +143,36 @@ window.Store = (function () {
     }
   }
 
+  /* A one-off pass over every saved chapter, for when the scoring
+     rules themselves change under a camper's feet.
+
+     `fn` is handed each chapter's saved tallies and returns the fields
+     to overwrite, or null to leave it alone. It runs at most once per
+     browser: the stamp is written back together with the results, so
+     nobody can be handed the same credit twice by reloading. */
+  function rescoreOnce(ver, fn) {
+    var d = read();
+    if ((d.scoreVer || 1) >= ver) return 0;
+
+    var touched = 0;
+    for (var i = 0; i < d.profiles.length; i++) {
+      var chs = d.profiles[i].chapters || {};
+      for (var k in chs) {
+        if (!Object.prototype.hasOwnProperty.call(chs, k)) continue;
+        var out = fn(chs[k]);
+        if (!out) continue;
+        for (var f in out) {
+          if (Object.prototype.hasOwnProperty.call(out, f)) chs[k][f] = out[f];
+        }
+        touched++;
+      }
+    }
+
+    d.scoreVer = ver;
+    write(d);
+    return touched;
+  }
+
   function resetProfile(profileId) {
     var d = read();
     for (var i = 0; i < d.profiles.length; i++) {
@@ -186,6 +216,7 @@ window.Store = (function () {
     chapter: chapter,
     blankChapter: blankChapter,
     saveChapter: saveChapter,
+    rescoreOnce: rescoreOnce,
     resetProfile: resetProfile,
     settings: settings,
     saveSettings: saveSettings,

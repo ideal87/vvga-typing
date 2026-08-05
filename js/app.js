@@ -106,6 +106,51 @@
     return 'pearl';
   }
 
+  /* ---- catching up the campers who typed under the old rules ----
+
+     Everything above changed after camp had already started: mending a
+     typo now earns half its penalty back, and the badges sit five
+     points lower. Campers part-way through were left holding scores
+     that no longer mean the same thing as the ones beside them on the
+     board, through no fault of their own.
+
+     So their saved bests are revised once, as though they had gone
+     back and mended every mistake they ever made. Since a mend returns
+     half of what a typo took, "all of them mended" works out to
+     exactly half the distance back to 100 - a 90% becomes 95% - and
+     the badge is then read off the new thresholds.
+
+     Bump SCORE_VER only if the scoring rules move again. */
+  var SCORE_VER = 2;
+
+  function asIfAllMended(acc) {
+    return Math.min(Math.round((100 + acc) / 2), 100);
+  }
+
+  Store.rescoreOnce(SCORE_VER, function (cs) {
+    var out = null;
+
+    if (typeof cs.bestAcc === 'number') {
+      var revised = asIfAllMended(cs.bestAcc);
+      var badge = badgeFor(revised);
+      // Belt and braces: a revision must never demote anybody.
+      if (cs.badge && BADGES[cs.badge] && BADGES[badge].rank < BADGES[cs.badge].rank) {
+        badge = cs.badge;
+      }
+      out = { bestAcc: revised, badge: badge };
+    }
+
+    // A chapter they are still in the middle of gets the same benefit,
+    // so the live number on the typing screen does not read lower than
+    // the best they have just been credited with.
+    if (cs.errors > 0 && !cs.fixed) {
+      out = out || {};
+      out.fixed = cs.errors;
+    }
+
+    return out;
+  });
+
   /* ---------------------------------------------------------
      3. Small helpers
      --------------------------------------------------------- */

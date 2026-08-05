@@ -149,6 +149,42 @@ mended or not; it is the accuracy that softens.
 The dial is `FIX_CREDIT` in `js/app.js`: `0.5` today, `0` restores the
 old strict sum, `1` makes a mended typo entirely free.
 
+### Campers who started before all this changed
+
+The scoring moved after camp had already begun — mending began to pay,
+and the badges dropped five points. Campers part-way through were left
+holding numbers that no longer meant the same thing as the ones next to
+them on the board, through no fault of their own.
+
+So the first time a browser loads the new version, every saved best is
+revised **once**, as though that camper had gone back and mended every
+mistake they ever made. A mend returns half of what a typo took, so
+"all of them mended" is simply half the distance back to 100:
+
+| Old best | Revised to | Badge |
+|---|---|---|
+| 100% | 100% | Gold → Gold |
+| 96% | 98% | Silver → **Gold** |
+| 90% | 95% | Bronze → **Gold** |
+| 80% | 90% | Pearl → **Silver** |
+| 70% | 85% | Pearl → **Bronze** |
+
+A chapter still being typed gets the same benefit, so the live number on
+the typing screen never reads lower than the best just credited.
+
+It is safe against the obvious ways it could go wrong:
+
+- **It cannot run twice.** The stamp (`scoreVer`) is written back with
+  the results, so reloading — or reopening the site all week — changes
+  nothing further.
+- **It cannot demote anyone.** The revision only ever raises a score,
+  and a badge is kept if the recomputed one would somehow rank lower.
+- **It cannot exceed 100%,** and it leaves scores earned *after* the
+  change alone.
+
+If the scoring rules ever move again, bump `SCORE_VER` in `js/app.js`
+and every browser will do one fresh pass.
+
 ### Their picture
 
 Answering *Girl* or *Boy* opens five little Bible people to choose
