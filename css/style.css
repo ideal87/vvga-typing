@@ -52,13 +52,13 @@
    of the same hue - white on bright green is unreadable. */
 
 :root[data-theme="green"] {
-  --brand:      #15803d;
-  --brand-dk:   #106630;
-  --brand-lt:   #dcf7e3;
-  --brand-2:    #18863f;
-  --brand-glow: rgba(21, 128, 61, .32);
-  --bg-1:       #f0f9f2;
-  --bg-2:       #e4f4ea;
+  --brand:      #00814f;
+  --brand-dk:   #016239;
+  --brand-lt:   #d5fce9;
+  --brand-2:    #04865d;
+  --brand-glow: rgba(0, 230, 118, .38);
+  --bg-1:       #edfdf4;
+  --bg-2:       #ddf8ec;
 }
 
 :root[data-theme="pink"] {

@@ -295,7 +295,7 @@
      the top bar itself uses a deeper relative of it. */
   var THEMES = [
     { id: 'violet', name: 'Purple', swatch: '#5b4bd6' },
-    { id: 'green',  name: 'Green',  swatch: '#4bd65f' },
+    { id: 'green',  name: 'Green',  swatch: '#00e676' },
     { id: 'pink',   name: 'Pink',   swatch: '#ff7bb0' },
     { id: 'blue',   name: 'Blue',   swatch: '#5cc6e8' }
   ];
